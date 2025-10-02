@@ -7,6 +7,7 @@
 StackErr_t _Stack_Read(stack_t* stk, StackErr_t* err,  const char* FILENAME, const int NUM_STRING, const char* FUNCNAME)
 {
     FILE* fp = fopen(NAME_INPUT_FILE, "r");
+    FILE* fpp = fopen(NAME_BYTECODE_FILE, "w+");
     char command[8];
     data_t num = 0;
 
@@ -16,6 +17,38 @@ StackErr_t _Stack_Read(stack_t* stk, StackErr_t* err,  const char* FILENAME, con
         printf("Code error: %d. Error open file\n", ERROR_OPEN_INPUTFILE);
         return ERROR_OPEN_INPUTFILE;
     }
+
+    while (1)
+{
+    fscanf(fp, "%s", command);
+    if (!(strcmp(command, "PUSH")))
+    {
+        fprintf(fpp, "%d ", PUSH_CODE);
+        fscanf(fp, SPEC, &num);
+        fprintf(fpp, SPEC "\n", num);
+    }
+
+    if (!(strcmp(command, "POP")))
+        fprintf(fpp, "%d\n", POP_CODE);
+
+    if (!(strcmp(command, "ADD")))
+        fprintf(fpp, "%d\n", ADD_CODE);
+
+    if (!(strcmp(command, "SUB")))
+        fprintf(fpp, "%d\n", SUB_CODE);
+
+    if (!(strcmp(command, "DIV")))
+        fprintf(fpp, "%d\n", DIV_CODE);
+
+    if (!(strcmp(command, "SQRT")))
+        fprintf(fpp, "%d\n", SQRT_CODE);
+
+    if (!(strcmp(command, "HLT")))
+    {
+        fprintf(fpp, "%d", HLT_CODE);
+        break;
+    }
+}
 
     while (1)
     {
@@ -75,13 +108,11 @@ StackErr_t _Stack_Read(stack_t* stk, StackErr_t* err,  const char* FILENAME, con
 }
 
 // FILE* fp = fopen(NAME_INPUT_FILE, "r");
-// FILE* fpp = fopen(NAME_BYTECODE_FILE, "w+")
+// FILE* fpp = fopen(NAME_BYTECODE_FILE, "w+");
 // char command[8];
 // data_t num = 0;
 // int var = 0;
 
-// while (1)
-    // fscanf(fp, "%s", command);
-    // if (!(strcmp(command, "PUSH")))
-    //     fprintf(fpp, "")
+    
+
 
