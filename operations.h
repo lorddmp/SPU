@@ -1,10 +1,10 @@
 #ifndef OPERATIONS
 #define OPERATIONS
 
-//git username and password
-//git pull
-
 #include "stack/stack.h"
+
+#define MAX_SIZE_COMMAND 8
+#define SIZE_MASSIVE 1024
 
 enum
 {
@@ -19,5 +19,7 @@ enum
 };
 
 StackErr_t _Stack_Read(stack_t* stk, StackErr_t* err, const char* FILENAME, const int NUM_STRING, const char* FUNCNAME);
+
+StackErr_t Create_Bytecode(stack_t* stk, const char* FILENAME, const int NUM_STRING, const char* FUNCNAME);
 
 #endif
