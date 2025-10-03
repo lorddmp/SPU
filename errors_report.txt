@@ -1,9 +1,9 @@
-_Stack_Dump called from stack/main.cpp, main:17
-stack [0x7ffe20ab72e0]
+_Stack_Dump called from main.cpp, main:17
+stack [0x7fff563f4c30]
 
-size = 9
+size = 11
 capacity = 16
-data [0x59f38413bab0]
+data [0x5e0c044adab0]
 {
 *[1] = 1
 *[2] = 10000
@@ -14,8 +14,8 @@ data [0x59f38413bab0]
 *[7] = 100
 *[8] = 100
 *[9] = 100
-*[10] = 7.06201e+06
-*[11] = 7.06201e+06
+*[10] = 100
+*[11] = 100
 *[12] = 7.06201e+06
 *[13] = 7.06201e+06
 *[14] = 7.06201e+06

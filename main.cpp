@@ -1,38 +1,21 @@
-#include <stdlib.h>
+#include "stack/stack.h"
+#include "operations.h"
+
 #include <stdio.h>
-
-int main() {
-    FILE *fp = fopen("test.txt", "w");
-    if (!fp) {
-        printf("> File open error\n");
-
-        return 1;
-    }
-
-    // unsigned char one = 1;
-
-    // fwrite(&one, 1, sizeof(unsigned char), fp); //Проверки
-
-    // char InT[4] = {0, 0, 5, 1};
-
-    //0b 0000 0000   0000 0000   0000 0101   0000 0001
-
-    // printf("%d\n", *(int*)InT);
-
-    int a = 10000;
-
-    //0b 0000 0000  0000 0000   0010 0111   0001 0000
-
-    unsigned char bytecode[4] = {0};
-
-    *(int*)bytecode = a;
+#include <string.h>
 
 
-    for (int i = 0; i < 4; i++)
-        printf("> %x\n", bytecode[i]);
+int main()
+{
+    StackErr_t err = NO_ERRORS;
+    stack_t stk = {};
 
-    printf("%lld\n", 0b10011100010000);
+    IF_ERROR(StackInit(&stk, 2), stk);
 
-    fclose(fp);
+    IF_ERROR(StackRead(&stk, &err), stk);
+
+    IF_ERROR(StackDump(stk), stk);
+    IF_ERROR(StackDestroyer(&stk), stk);
+
     return 0;
 }
