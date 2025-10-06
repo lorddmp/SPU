@@ -2,7 +2,6 @@
 #include "create_bytecode.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
 
 StackErr_t _Stack_Read(stack_t* stk, StackErr_t* err,  const char* FILENAME, const int NUM_STRING, const char* FUNCNAME)
@@ -17,8 +16,6 @@ StackErr_t _Stack_Read(stack_t* stk, StackErr_t* err,  const char* FILENAME, con
         printf("Code error: %d. Calloc worked incorrectly\n", ERROR_CALLOC);
         return ERROR_CALLOC;
     }
-
-    Create_Bytecode(stk, FILENAME, NUM_STRING, FUNCNAME);
 
     FILE* fpp = fopen(NAME_BYTECODE_FILE, "r");
 

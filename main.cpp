@@ -19,3 +19,8 @@ int main()
 
     return 0;
 }
+
+//...
+//{"NEW_CMD", NEW_CMD_CODE},
+//new func Find_Command_Code
+//-----2 programmes
