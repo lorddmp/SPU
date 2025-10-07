@@ -18,11 +18,13 @@ StackErr_t Create_Bytecode(void)
 
     if (fpp == NULL)
     {
-        printf("Code error: %d. Couldn't create bytecode file\n", ERROR_CREATING_BYTYCODE_FILE);
-        return ERROR_CREATING_BYTYCODE_FILE;
+        perror("where?");
+        printf("Code error: %d. Couldn't create bytecode file\n", ERROR_CREATING_BYTECODE_FILE);
+        return ERROR_CREATING_BYTECODE_FILE;
     }
 
-    String_Processing(massive_bytecode, &num_elements, fp, fpp);
+    if (String_Processing(massive_bytecode, &num_elements, fp, fpp))
+        return NO_ERRORS;
 
     fwrite(massive_bytecode, sizeof(unsigned char), (size_t)num_elements, fpp);
 
@@ -35,10 +37,13 @@ StackErr_t Create_Bytecode(void)
 StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements, FILE* fp, FILE* fpp)
 {
     data_t num = 0;
+    unsigned char reg = 0;
     char command[MAX_SIZE_COMMAND] = {0};
 
     for (int i = 0; fscanf(fp, "%s", command) != 0; i++)
     {
+        //isspace
+
         *num_elements = i + 1;
 
         if (i + (int)sizeof(data_t) == SIZE_MASSIVE)
@@ -48,14 +53,16 @@ StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements,
             *num_elements = 1;
         }
 
+        //sscanf(buff + i, ...)
+
         if (!(strcmp(command, "PUSH")))
         { 
             massive_bytecode[i] = PUSH_CODE;  
 
             if(fscanf(fp, SPEC, &num) == 0)
             {
-                 printf("Code error: %d. Error in pushing value\n", ERROR_PUSH_NUM);
-                 return ERROR_PUSH_NUM;  
+                printf("Code error: %d. Error in pushing value\n", ERROR_PUSH_NUM);
+                return ERROR_PUSH_NUM;  
             }
 
             *((data_t*)(massive_bytecode + i + 1)) = num;
@@ -81,11 +88,41 @@ StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements,
         else if (!(strcmp(command, "IN")))
             massive_bytecode[i] =  IN_CODE;
 
-        else if (!(strcmp(command, "PUSR")))
-            massive_bytecode[i] =  PUSH_CODE;
+        else if (!(strcmp(command, "PUSHR")))
+        {
+            massive_bytecode[i] =  PUSHR_CODE;
+
+            fgetc(fp);
+            fscanf(fp, " %cX", &reg);
+
+            if (!(reg >= 'A' && reg < 'A' + REG_NUM ))
+            {
+                printf("Code error: %d. Invalid register\n", ILLEGAL_REGISTER);
+                return ILLEGAL_REGISTER;
+            }
+
+            massive_bytecode[i + 1] = reg - 'A';
+            i++;
+            *num_elements = i + 1;
+        }
 
         else if (!(strcmp(command, "POPR")))
+        {
             massive_bytecode[i] =  POPR_CODE;
+
+            fgetc(fp);
+            fscanf(fp, "%cX", &reg);
+
+            if (!(reg >= 'A' && reg < 'A' + REG_NUM ))
+            {
+                printf("Code error: %d. Invalid register\n", ILLEGAL_COMMAND);
+                return ILLEGAL_COMMAND;
+            }
+
+            massive_bytecode[i + 1] = reg - 'A';
+            i++;
+            *num_elements = i + 1;
+        }
 
         else if (!(strcmp(command, "HLT")))
         {
