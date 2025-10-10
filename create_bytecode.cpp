@@ -47,13 +47,13 @@ StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements,
 {
     char massive_command[1000] = {};
     char command[MAX_LEN_COMMAND] = {0};
-    unsigned char reg = 0;
   
     fread(massive_command, sizeof(char), 1000, fp);
 
     for (int i = 0, j = 0; sscanf(massive_command + j, "%s", command) != 0; j++, i++)
     {
         printf("i = %d) \n", i);
+        printf("command = %s\n", command);
         Skip_Spaces(massive_command, &j);
         *num_elements = i + 1;
 
@@ -66,8 +66,8 @@ StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements,
 
         if (!(strcmp(command, "PUSH")))
         { 
-            Work_With_PushValue(massive_bytecode, massive_command, num_elements, &i, &j);
             massive_bytecode[i] = PUSH_CODE;  
+            Work_With_PushValue(massive_bytecode, massive_command, num_elements, &i, &j);
         }
 
         else if (!(strcmp(command, "POP")))
@@ -110,44 +110,14 @@ StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements,
         {
             printf("LOL from pushr\n");
             massive_bytecode[i] =  PUSHR_CODE;
-            j += 5;
-            
-            Skip_Spaces(massive_command, &j);
-            sscanf(massive_command + j, "%cX", &reg);
-
-            if (!(reg >= 'A' && reg < 'A' + REG_NUM ))
-            {
-                printf("Code error: %d. Invalid register\n", ILLEGAL_COMMAND);
-                return ILLEGAL_COMMAND;
-            }
-
-            massive_bytecode[i + 1] = reg - 'A';
-            i++;
-            *num_elements = i + 1;
-
-            return NO_ERRORS;
+            Work_With_Register(massive_bytecode, massive_command, num_elements, &i, &j);
         }
 
         else if (!(strcmp(command, "POPR")))
         {
             printf("LOL from popr\n");
-            massive_bytecode[i] =  PUSHR_CODE;
-            j += 5;
-            
-            Skip_Spaces(massive_command, &j);
-            sscanf(massive_command + j, "%cX", &reg);
-
-            if (!(reg >= 'A' && reg < 'A' + REG_NUM ))
-            {
-                printf("Code error: %d. Invalid register\n", ILLEGAL_COMMAND);
-                return ILLEGAL_COMMAND;
-            }
-
-            massive_bytecode[i + 1] = reg - 'A';
-            i++;
-            *num_elements = i + 1;
-
-            return NO_ERRORS;
+            massive_bytecode[i] =  POPR_CODE;
+            Work_With_Register(massive_bytecode, massive_command, num_elements, &i, &j);
         }
 
         else if (!(strcmp(command, "HLT")))
@@ -191,22 +161,28 @@ StackErr_t Work_With_PushValue(unsigned char* massive_bytecode, char* massive_co
     return NO_ERRORS;
 }
 
-StackErr_t Work_With_Register(FILE* fp, unsigned char* massive_bytecode, int* num_elements, int i)
+StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j)
 {
     unsigned char reg = 0;
-    fgetc(fp);
-    fscanf(fp, "%cX", &reg);
+    *j += 5;
             
+    Skip_Spaces(massive_command, j);
+    sscanf(massive_command + *j, "%cX", &reg);
+    Skip_Value(massive_command, j);
+
+    printf("---%c-----------\n", reg);
+
     if (!(reg >= 'A' && reg < 'A' + REG_NUM ))
     {
         printf("Code error: %d. Invalid register\n", ILLEGAL_COMMAND);
         return ILLEGAL_COMMAND;
     }
 
-    massive_bytecode[i + 1] = reg - 'A';
-    i++;
-    *num_elements = i + 1;
+    massive_bytecode[*i + 1] = reg - 'A';
 
+    (*i)++;
+    *num_elements = *i + 1;
+    
     return NO_ERRORS;
 }
 

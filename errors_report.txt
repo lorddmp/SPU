@@ -1,10 +1,12 @@
 _Stack_Dump called from main_processor.cpp, main:19
-stack [0x7fff3272ebb0]
+stack [0x7ffebcca41f0]
 
-size = 1
-capacity = 2
-data [0x55c75076f2a0]
+size = 3
+capacity = 4
+data [0x5e49d4dface0]
 {
 *[1] = 100
-*[2] = 7.06201e+06
+*[2] = 100
+*[3] = 100
+*[4] = 7.06201e+06
 }

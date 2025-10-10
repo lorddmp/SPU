@@ -61,7 +61,7 @@ StackErr_t Create_Bytecode(void);
 
 StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements, FILE* fp, FILE* fpp);
 
-StackErr_t Work_With_Register(FILE* fp, unsigned char* massive_bytecode, int* num_elements, int i);
+StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j);
 
 StackErr_t Work_With_PushValue(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j);
 
