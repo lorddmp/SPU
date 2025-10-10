@@ -4,9 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 
-//структура процессора: стэк, регистры, байт-код, счетчик команд
-
-StackErr_t Run_Bytecode(stack_t* stk, StackErr_t* err)
+StackErr_t Run_Bytecode(str_processor* processor, StackErr_t* err)
 {
     unsigned char* buffer_commands = (unsigned char*)calloc(SIZE_MASSIVE, sizeof(char));
     int size_mas = 0;
@@ -28,61 +26,67 @@ StackErr_t Run_Bytecode(stack_t* stk, StackErr_t* err)
     }
 
     size_mas = (int)fread(buffer_commands, sizeof(char), SIZE_MASSIVE, fpp);
-
+    printf("%d", size_mas);
+    
     for (int i = 0; i < size_mas; i++)
     {
+        printf("LOL\n");
         switch (buffer_commands[i])
         {
             case PUSH_CODE:
-                IF_ERROR(StackPush(stk, *(data_t*)(&buffer_commands[i + 1])), *stk)
+                printf("LOL\n");
+                IF_ERROR(StackPush(&processor->stk, *(data_t*)(&buffer_commands[i + 1])), processor->stk)
+                printf("LOL\n");
                 i += (int)sizeof(data_t);
                 break;
 
             case POP_CODE:
-                printf(SPEC "\n", StackPop(stk, err));
+                printf(SPEC "\n", StackPop(&processor->stk, err));
                 break;
 
             case ADD_CODE:
-                StackPush(stk, StackPop(stk, err) + StackPop(stk, err));
+                StackPush(&processor->stk, StackPop(&processor->stk, err) + StackPop(&processor->stk, err));
                 break;
 
             case SUB_CODE:
-                StackPush(stk, - StackPop(stk, err) + StackPop(stk, err));
+                StackPush(&processor->stk, - StackPop(&processor->stk, err) + StackPop(&processor->stk, err));
                 break;
 
             case MUL_CODE:
-                StackPush(stk, StackPop(stk, err) * StackPop(stk, err));
+                StackPush(&processor->stk, StackPop(&processor->stk, err) * StackPop(&processor->stk, err));
                 break;
             
             case DIV_CODE:
             {
-                data_t a = StackPop(stk, err);
+                data_t a = StackPop(&processor->stk, err);
 
                 if (_Is_Zero(a))
                     printf("NA NOL DELIT NELZYA!\n");
                 
                 else
-                    StackPush(stk, StackPop(stk, err) / a);
+                    StackPush(&processor->stk, StackPop(&processor->stk, err) / a);
                 
                 break;
             }
 
             case SQRT_CODE:
-                StackPush(stk, sqrt(StackPop(stk, err)));
+                StackPush(&processor->stk, sqrt(StackPop(&processor->stk, err)));
                 break;
 
             case IN_CODE:
                 scanf(SPEC, &value_in);
-                StackPush(stk, value_in);
+                StackPush(&processor->stk, value_in);
                 break;
 
             case PUSHR_CODE:
-                StackPush(stk, registr_mas[buffer_commands[i + 1]]);
+                printf("LOL\n");
+                StackPush(&processor->stk, registr_mas[buffer_commands[i + 1]]);
                 i++;
                 break;
 
             case POPR_CODE:
-                registr_mas[buffer_commands[i + 1]] = StackPop(stk, err);
+                printf("LOL\n");
+                registr_mas[buffer_commands[i + 1]] = StackPop(&processor->stk, err);
                 i++;
                 break;
 
@@ -90,7 +94,7 @@ StackErr_t Run_Bytecode(stack_t* stk, StackErr_t* err)
                 break;
 
             default:
-                StackDump(*stk);
+                StackDump(processor->stk);
                 printf("Code error: %d. Invalid command\n", ILLEGAL_COMMAND);
                 return ILLEGAL_COMMAND;
         }
