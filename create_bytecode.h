@@ -9,8 +9,9 @@
 #include <stdio.h>
 
 #define MAX_LEN_COMMAND 8
-#define NUM_COMMAND 11
+#define NUM_COMMAND 20
 #define SIZE_MASSIVE 1024
+#define METKA_NUM 10
 
 #define IF_ERROR_COMPILER(arg)        \
     if (arg)                          \
@@ -27,20 +28,22 @@ enum
     DIV_CODE = 6,
     SQRT_CODE = 7,
     IN_CODE = 8,
-    PUSHR_CODE = 33,
+    PUSHR_CODE = 33, 
     POPR_CODE = 42,
-    // JB_CODE = 50,
-    // JBE_CODE = 51,
-    // JA_CODE = 52,
-    // JAE_CODE = 53,
-    // JE_CODE = 54,
-    // JNE_CODE = 55,
-    // JMP_CODE = 56,
+    JB_CODE = 50,
+    JBE_CODE = 51,
+    JA_CODE = 52,
+    JAE_CODE = 53,
+    JE_CODE = 54,
+    JNE_CODE = 55,
+    JMP_CODE = 56,
+    CALL_CODE = 57,
+    RET_CODE = 58,
 };
 
 struct cmd_and_codes{
     const char* CMD;
-    int CMD_CODE;
+    unsigned char CMD_CODE;
     int LEN_CMD;
 };
 
@@ -55,18 +58,30 @@ const cmd_and_codes massive_structur[NUM_COMMAND] = {
     {"IN", IN_CODE, 2},
     {"PUSHR", PUSHR_CODE, 5},
     {"POPR", POPR_CODE, 4},
+    {"HLT", HLT_CODE, 3},
+    {"JAE", JAE_CODE, 3},
+    {"JA", JA_CODE, 2},
+    {"JB", JB_CODE, 2},
+    {"JBE", JBE_CODE, 3},
+    {"JE", JE_CODE, 2},
+    {"JNE", JNE_CODE, 3},
+    {"JMP", JMP_CODE, 3},
+    {"CALL", CALL_CODE, 4},
+    {"RET", RET_CODE, 3}
 };
 
 StackErr_t Create_Bytecode(void);
 
-StackErr_t String_Processing(unsigned char* massive_bytecode, int* num_elements, FILE* fp, FILE* fpp);
+StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, FILE* fpp);
+
+int Find_command_code(char* command, int* j);
 
 StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j);
 
 StackErr_t Work_With_PushValue(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j);
 
-bool Skip_Spaces(char* massive_command, int* j);
+StackErr_t Work_With_Jump(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int* i, int* j);
 
-int Skip_Value(char* massive_command, int* j);
+bool Skip_Spaces(char* massive_command, int* j);
 
 #endif

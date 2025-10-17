@@ -12,7 +12,7 @@ int main()
     };
     StackErr_t err = NO_ERRORS;
 
-    IF_ERROR(StackInit(&processor.stk, 2), processor.stk);
+    IF_ERROR(StackInit(&processor.stk, 4), processor.stk);
 
     Run_Bytecode(&processor, &err);
 
@@ -21,7 +21,3 @@ int main()
 
     return 0;
 }
-
-//{"NEW_CMD", NEW_CMD_CODE}, strcmp в цикл!!!
-//-----new func Find_Command_Code
-//-----2 programmes
