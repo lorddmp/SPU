@@ -10,30 +10,14 @@
 
 struct str_processor{
     stack_str stk;
+    stack_str call_adr;
+    data_t* oper_memory;
     data_t registr_mas[REG_NUM];
     unsigned char* massive_bytecode;
-    int programme_counter;
+    unsigned char* buffer_commands;
+    int ip;
 };
 
-#define GEN_ARIPHMETIC_DECLARATION(funcname)                    \
-StackErr_t funcname(str_processor* processor, StackErr_t* err);
-
-GEN_ARIPHMETIC_DECLARATION(ADD_CASE)
-GEN_ARIPHMETIC_DECLARATION(SUB_CASE)
-GEN_ARIPHMETIC_DECLARATION(MUL_CASE)
-
-#undef GEN_ARIPHMETIC_DECLARATION
-
-#define GEN_JUMPING_DECLARATION(funcname)                                                               \
-StackErr_t funcname(str_processor* processor, StackErr_t* err, int* i, unsigned char* buffer_commands);
-
-GEN_JUMPING_DECLARATION(JA_CASE)
-GEN_JUMPING_DECLARATION(JB_CASE)
-GEN_JUMPING_DECLARATION(JAE_CASE)
-GEN_JUMPING_DECLARATION(JBE_CASE)
-
-#undef GEN_JUMPING_DECLARATION
-
-StackErr_t Run_Bytecode(str_processor* processor, StackErr_t* err);
+StackErr_t Run_Bytecode(str_processor* processor);
 
 #endif

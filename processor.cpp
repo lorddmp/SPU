@@ -4,64 +4,76 @@
 #include <stdio.h>
 #include <math.h>
 
+#define GEN_FUNC_DECLARATION(funcname)        \
+StackErr_t funcname(str_processor* processor);
+
+GEN_FUNC_DECLARATION(PUSH_CASE)
+GEN_FUNC_DECLARATION(POP_CASE)
+GEN_FUNC_DECLARATION(ADD_CASE)
+GEN_FUNC_DECLARATION(SUB_CASE)
+GEN_FUNC_DECLARATION(MUL_CASE)
+GEN_FUNC_DECLARATION(DIV_CASE)
+GEN_FUNC_DECLARATION(SQRT_CASE)
+GEN_FUNC_DECLARATION(IN_CASE)
+GEN_FUNC_DECLARATION(PUSHR_CASE)
+GEN_FUNC_DECLARATION(POPR_CASE)
+GEN_FUNC_DECLARATION(JA_CASE)
+GEN_FUNC_DECLARATION(JB_CASE)
+GEN_FUNC_DECLARATION(JAE_CASE)
+GEN_FUNC_DECLARATION(JBE_CASE)
+GEN_FUNC_DECLARATION(JE_CASE)
+GEN_FUNC_DECLARATION(JNE_CASE)
+GEN_FUNC_DECLARATION(JMP_CASE)
+GEN_FUNC_DECLARATION(CALL_CASE)
+GEN_FUNC_DECLARATION(RET_CASE)
+
+#undef GEN_FUNC_DECLARATION
+
 //kvadratka
 //fibo
 //factorial
 
-StackErr_t Run_Commands(str_processor* processor, StackErr_t* err, unsigned char* buffer_commands, int size_mas);
+StackErr_t Run_Commands(str_processor* processor, int size_mas);
 
 bool Is_Zero(data_t a, data_t b);
 
-#define GEN_ARIPHMETIC(funcname, sign)                          \
-StackErr_t funcname(str_processor* processor, StackErr_t* err)  \
-{                                                               \
-    data_t value1 = StackPop(&processor->stk, err);             \
-    IF_ERROR(*err, processor->stk)                              \
-                                                                \
-    data_t value2 = StackPop(&processor->stk, err);             \
-    IF_ERROR(*err, processor->stk)                              \
-                                                                \
-    StackPush(&processor->stk, value2 sign value1);             \
-                                                                \
-    return NO_ERRORS;                                           \
-}
-
-GEN_ARIPHMETIC(ADD_CASE, +)
-GEN_ARIPHMETIC(SUB_CASE, -)
-GEN_ARIPHMETIC(MUL_CASE, *)
-
-#undef GEN_ARIPHMETIC
-
-#define GEN_JUMPING(funcname, sign)                                                                     \
-StackErr_t funcname(str_processor* processor, StackErr_t* err, int* i, unsigned char* buffer_commands)  \
-{                                                                                                       \
-    data_t value_j1 = StackPop(&processor->stk, err);                                                   \
-    IF_ERROR(*err, processor->stk)                                                                      \
-                                                                                                        \
-    data_t value_j2 = StackPop(&processor->stk, err);                                                   \
-    IF_ERROR(*err, processor->stk)                                                                      \
-                                                                                                        \
-    if (value_j1 sign value_j2)                                                                         \
-        *i = *(int*)(&buffer_commands[*i + 1]) - 1;                                                     \
-    else                                                                                                \
-        *i += (int)sizeof(int);                                                                         \
-                                                                                                        \
-    return NO_ERRORS;                                                                                   \
-}
-
-GEN_JUMPING(JA_CASE, >)
-GEN_JUMPING(JAE_CASE, >=)
-GEN_JUMPING(JB_CASE, <)
-GEN_JUMPING(JBE_CASE, <=)
-
-#undef GEN_JUMPING
-
-StackErr_t Run_Bytecode(str_processor* processor, StackErr_t* err)
+struct functions
 {
-    unsigned char* buffer_commands = (unsigned char*)calloc(SIZE_MASSIVE, sizeof(char));
+    StackErr_t(*funcname)(str_processor* processor);
+    const char* CMD;
+    int CMD_CODE;
+};
+
+functions func_mas[NUM_COMMAND]
+{
+    {NULL, "HLT", HLT_CODE},
+    {PUSH_CASE, "PUSH", PUSH_CODE},
+    {POP_CASE, "POP", POP_CODE},
+    {ADD_CASE, "ADD", ADD_CODE},
+    {SUB_CASE, "SUB", SUB_CODE},
+    {MUL_CASE, "MUL", MUL_CODE},
+    {DIV_CASE, "DIV", DIV_CODE},
+    {SQRT_CASE, "SQRT", SQRT_CODE},
+    {IN_CASE, "IN", IN_CODE},
+    {PUSHR_CASE, "PUSHR", PUSHR_CODE},
+    {POPR_CASE, "POPR", POPR_CODE},
+    {JA_CASE, "JA", JA_CODE},
+    {JB_CASE, "JB", JB_CODE},
+    {JAE_CASE, "JAE", JAE_CODE},
+    {JBE_CASE, "JBE", JBE_CODE},
+    {JE_CASE, "JE", JE_CODE},
+    {JNE_CASE, "JNE", JNE_CODE},
+    {JMP_CASE, "JMP", JMP_CODE},
+    {CALL_CASE, "CALL", CALL_CODE},
+    {RET_CASE, "RET", RET_CODE},
+};
+
+StackErr_t Run_Bytecode(str_processor* processor)
+{
+    processor->buffer_commands = (unsigned char*)calloc(SIZE_MASSIVE, sizeof(char));
     int size_mas = 0;
 
-    if (buffer_commands == NULL)
+    if (processor->buffer_commands == NULL)
     {
         printf("Code error: %d. Calloc worked incorrectly\n" , ERROR_CALLOC);
         return ERROR_CALLOC;
@@ -75,167 +87,229 @@ StackErr_t Run_Bytecode(str_processor* processor, StackErr_t* err)
         return ERROR_OPEN_BYTECODE_FILE;
     }
 
-    size_mas = (int)fread(buffer_commands, sizeof(char), SIZE_MASSIVE, fpp);
+    size_mas = (int)fread(processor->buffer_commands, sizeof(char), SIZE_MASSIVE, fpp);
     
-    Run_Commands(processor, err, buffer_commands, size_mas);
+    Run_Commands(processor, size_mas);
 
-    free(buffer_commands);
+    free(processor->buffer_commands);
 
     fclose(fpp);
     
     return NO_ERRORS;
 }
 
-StackErr_t Run_Commands(str_processor* processor, StackErr_t* err, unsigned char* buffer_commands, int size_mas)
+StackErr_t Run_Commands(str_processor* processor, int size_mas)
 {
-    data_t value_in = 0;
-    data_t registr_mas[REG_NUM] = {0};
-    int call_adr = 0;
-
-    for (int i = 0; i < size_mas; i++, processor->programme_counter++)
+    for (int i = 0; i < size_mas; i++, processor->ip++)
     {
-        printf("\n\n-----\n\nCODE is: %d\n", buffer_commands[i]);
-        switch (buffer_commands[i])
+        bool func_found = 0;
+        printf("\n\n-----\n\nCODE is: %d\n", processor->buffer_commands[processor->ip]);
+
+        for (int j = 1; j < NUM_COMMAND; j++)
         {
-            case PUSH_CODE:
-                printf("PUSH_RUN\n");
-                IF_ERROR(StackPush(&processor->stk, *(data_t*)(&buffer_commands[i + 1])), processor->stk)
-                i += (int)sizeof(data_t);
-                processor->programme_counter++;
-                break;
-
-            case POP_CODE:
-                printf("POP_RUN\n");
-                printf(SPEC "\n", StackPop(&processor->stk, err));
-                break;
-
-            case ADD_CODE:
-                printf("ADD_RUN\n");
-                ADD_CASE(processor, err);
-                break;
-
-            case SUB_CODE:
-                printf("SUB_RUN\n");
-                SUB_CASE(processor, err);
-                break;
-
-            case MUL_CODE:
-                printf("MUL_RUN\n");
-                MUL_CASE(processor, err);
-                break;
-            
-            case DIV_CODE:
+            if (func_mas[j].CMD_CODE == processor->buffer_commands[processor->ip])
             {
-                printf("DIV_RUN\n");
-                data_t a = StackPop(&processor->stk, err);
-
-                if (_Is_Zero(a))
-                    printf("NA NOL DELIT NELZYA!\n");
-                else
-                    StackPush(&processor->stk, StackPop(&processor->stk, err) / a);
-                
+                func_found = true;
+                printf("%s", func_mas[j].CMD);
+                printf("_RUN\n");
+                func_mas[j].funcname(processor);
                 break;
             }
-
-            case SQRT_CODE:
-                printf("SQRT_RUN\n");
-                StackPush(&processor->stk, sqrt(StackPop(&processor->stk, err)));
-                break;
-
-            case IN_CODE:
-                printf("IN_RUN\n");
-                scanf(SPEC, &value_in);
-                StackPush(&processor->stk, value_in);
-                break;
-
-            case PUSHR_CODE:
-                printf("PUSHR_RUN\n");
-                StackPush(&processor->stk, registr_mas[buffer_commands[i + 1]]);
-                processor->programme_counter++;
-                i++;
-                break;
-
-            case POPR_CODE:
-                printf("POPR_RUN\n");
-                registr_mas[buffer_commands[i + 1]] = StackPop(&processor->stk, err);
-                processor->programme_counter++;
-                i++;
-                break;
-
-            case JA_CODE:
-                printf("JA_RUN\n");
-                JA_CASE(processor, err, &i, buffer_commands);
-                break;
-
-            case JB_CODE:
-                printf("JB_RUN\n");
-                JB_CASE(processor, err, &i, buffer_commands);
-                break;
-
-            case JBE_CODE:
-                printf("JBE_RUN\n");
-                JBE_CASE(processor, err, &i, buffer_commands);
-                processor->programme_counter++;
-                break;
-
-            case JAE_CODE:
-                printf("JAE_RUN\n");
-                JAE_CASE(processor, err, &i, buffer_commands);
-                processor->programme_counter++;
-                break;
-
-            case JE_CODE:
-                printf("JE_RUN\n");
-                if (Is_Zero(StackPop(&processor->stk, err), StackPop(&processor->stk, err)))
-                    i = *(int*)(&buffer_commands[i + 1]) - 1;
-
-                else 
-                    i += (int)sizeof(int);
-                
-                processor->programme_counter++;
-                break;
-
-            case JNE_CODE:
-                printf("JNE_RUN\n");
-                if (!(Is_Zero(StackPop(&processor->stk, err), StackPop(&processor->stk, err))))
-                    i = *(int*)(&buffer_commands[i + 1]) - 1;
-
-                else 
-                    i += (int)sizeof(int);
-
-                processor->programme_counter++;
-                
-                break;
-
-            case JMP_CODE:
-                printf("JMP_RUN\n");
-                i = *(int*)(&buffer_commands[i + 1]) - 1;
-                processor->programme_counter++;
-                break;
-
-            case CALL_CODE:
-                printf("CALL_RUN\n");
-                call_adr = i + sizeof(int);
-                printf("call_adr = %d\n", call_adr);
-                i = *(int*)(&buffer_commands[i + 1]) - 1;
-                processor->programme_counter++;
-                break;
-
-            case RET_CODE:
-                printf("RET_RUN\n");
-                i = call_adr;
-                break;
-
-            case HLT_CODE:
-                printf("HLT_RUN\n");
-                return NO_ERRORS;
-
-            default: 
-                StackDump(processor->stk);
-                printf("Code error: %d. Invalid command\n", ILLEGAL_COMMAND);
-                return ILLEGAL_COMMAND;
         }
+
+        if (func_found)
+            continue;
+
+        else if (processor->buffer_commands[processor->ip] == 0)
+            return NO_ERRORS;
+        else
+        {
+            StackDump(processor->stk);
+            printf("Code error: %d. Invalid command\n", ILLEGAL_COMMAND);
+            return ILLEGAL_COMMAND;
+        }
+        
     }
+
+    return NO_ERRORS;
+}
+
+StackErr_t PUSH_CASE(str_processor* processor)
+{
+    IF_ERROR(StackPush(&processor->stk, *(data_t*)(&processor->buffer_commands[processor->ip + 1])), processor->stk)
+    processor->ip += (int)sizeof(data_t);
+
+    return NO_ERRORS;
+}
+
+StackErr_t POP_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    printf(SPEC "\n", StackPop(&processor->stk, &err));
+    IF_ERROR(err, processor->stk)
+
+    return NO_ERRORS;
+}
+
+#define GEN_ARIPHMETIC(funcname, sign)                                      \
+StackErr_t funcname(str_processor* processor)                               \
+{                                                                           \
+    StackErr_t err = NO_ERRORS;                                             \
+    data_t value1 = StackPop(&processor->stk, &err);                        \
+    IF_ERROR(err, processor->stk)                                           \
+                                                                            \
+    data_t value2 = StackPop(&processor->stk, &err);                        \
+    IF_ERROR(err, processor->stk)                                           \
+                                                                            \
+    IF_ERROR(StackPush(&processor->stk, value2 sign value1),processor->stk) \
+                                                                            \
+    return NO_ERRORS;                                                       \
+}
+  
+GEN_ARIPHMETIC(ADD_CASE, +)
+GEN_ARIPHMETIC(SUB_CASE, -)
+GEN_ARIPHMETIC(MUL_CASE, *) 
+
+#undef GEN_ARIPHMETIC
+
+StackErr_t DIV_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+
+    data_t a = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk);
+
+    data_t b = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk);
+
+    if (_Is_Zero(a))
+        printf("NA NOL DELIT NELZYA!\n");
+    else
+        IF_ERROR(StackPush(&processor->stk, b / a), processor->stk)
+
+    return NO_ERRORS;
+}
+
+StackErr_t SQRT_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    data_t A = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk)
+
+    IF_ERROR(StackPush(&processor->stk, sqrt(A)), processor->stk)
+
+    return NO_ERRORS;
+}
+
+StackErr_t IN_CASE(str_processor* processor)
+{
+    data_t value_in = 0;
+
+    scanf(SPEC, &value_in);
+    IF_ERROR(StackPush(&processor->stk, value_in), processor->stk);
+
+    return NO_ERRORS;
+}
+
+StackErr_t PUSHR_CASE(str_processor* processor)
+{
+    IF_ERROR(StackPush(&processor->stk, processor->registr_mas[processor->buffer_commands[processor->ip + 1]]), processor->stk)
+
+    processor->ip++;
+
+    return NO_ERRORS;
+}
+
+StackErr_t POPR_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    processor->registr_mas[processor->buffer_commands[processor->ip + 1]] = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk)
+
+    processor->ip++;
+
+    return NO_ERRORS;
+}
+
+#define GEN_JUMPING(funcname, sign)                                                     \
+StackErr_t funcname(str_processor* processor)                                           \
+{                                                                                       \
+    StackErr_t err = NO_ERRORS;                                                         \
+    data_t value_j1 = StackPop(&processor->stk, &err);                                  \
+    IF_ERROR(err, processor->stk)                                                       \
+                                                                                        \
+    data_t value_j2 = StackPop(&processor->stk, &err);                                  \
+    IF_ERROR(err, processor->stk)                                                       \
+                                                                                        \
+    if (value_j1 sign value_j2)                                                         \
+        processor->ip = *(int*)(&processor->buffer_commands[processor->ip + 1]) - 1;    \
+    else                                                                                \
+        processor->ip += (int)sizeof(int);                                              \
+                                                                                        \
+    return NO_ERRORS;                                                                   \
+}
+
+GEN_JUMPING(JA_CASE, >)
+GEN_JUMPING(JAE_CASE, >=)
+GEN_JUMPING(JB_CASE, <)
+GEN_JUMPING(JBE_CASE, <=)
+
+#undef GEN_JUMPING
+
+StackErr_t JE_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    data_t value1 = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk)
+
+    data_t value2 = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk)
+
+    if (Is_Zero(value1, value2))
+        processor->ip = *(int*)(&processor->buffer_commands[processor->ip + 1]) - 1;
+    else 
+        processor->ip += (int)sizeof(int);
+    
+    return NO_ERRORS;
+}
+
+StackErr_t JNE_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    data_t value1 = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk)
+
+    data_t value2 = StackPop(&processor->stk, &err);
+    IF_ERROR(err, processor->stk)
+
+    if (!(Is_Zero(value1, value2)))
+        processor->ip = *(int*)(&processor->buffer_commands[processor->ip + 1]) - 1;
+    else 
+        processor->ip += (int)sizeof(int);
+    
+    return NO_ERRORS;
+}
+
+StackErr_t JMP_CASE(str_processor* processor)
+{
+    processor->ip = *(int*)(&processor->buffer_commands[processor->ip + 1]) - 1;
+
+    return NO_ERRORS;
+}
+
+StackErr_t CALL_CASE(str_processor* processor)
+{
+    IF_ERROR(StackPush(&processor->call_adr, processor->ip + (int)sizeof(int)), processor->call_adr);
+    processor->ip = *(int*)(&processor->buffer_commands[processor->ip + 1]) - 1;
+
+    return NO_ERRORS;
+}
+
+StackErr_t RET_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    processor->ip = StackPop(&processor->call_adr, &err);
+    IF_ERROR(err, processor->call_adr)
 
     return NO_ERRORS;
 }

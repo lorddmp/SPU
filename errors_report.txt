@@ -1,11 +1,11 @@
-_Stack_Dump called from main_processor.cpp, main:19
-stack [0x7ffc60cdc840]
+_Stack_Dump called from main_processor.cpp, main:21
+stack [0x7ffca493eba0]
 
 size = 1
 capacity = 4
-data [0x5bb2b14c62a0]
+data [0x5b3df0801b30]
 {
-*[1] = 11
+*[1] = 8
 *[2] = 7.06201e+06
 *[3] = 7.06201e+06
 *[4] = 7.06201e+06
