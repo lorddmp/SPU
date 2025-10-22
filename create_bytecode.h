@@ -1,7 +1,7 @@
 #ifndef BYTECODE
 #define BYTECODE
 
-#define NAME_INPUT_FILE "stack_commands.txt"
+#define NAME_INPUT_FILE "picMIPT.txt"
 #define NAME_BYTECODE_FILE "bytecode_file"
 
 #include "stack/stack.h"
@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 #define MAX_LEN_COMMAND 8
-#define NUM_COMMAND 20
+#define NUM_COMMAND 24
 #define SIZE_MASSIVE 1024
 #define METKA_NUM 10
 
@@ -39,6 +39,10 @@ enum
     JMP_CODE = 56,
     CALL_CODE = 57,
     RET_CODE = 58,
+    PUSHM_CODE = 59,
+    POPM_CODE = 60,
+    DRAW_CODE = 61,
+    SLEEP_CODE = 62,
 };
 
 struct cmd_and_codes{
@@ -56,7 +60,6 @@ const cmd_and_codes massive_structur[NUM_COMMAND] = {
     {"DIV", DIV_CODE, 3},
     {"SQRT", SQRT_CODE, 4},
     {"IN", IN_CODE, 2},
-    {"PUSHR", PUSHR_CODE, 5},
     {"POPR", POPR_CODE, 4},
     {"HLT", HLT_CODE, 3},
     {"JAE", JAE_CODE, 3},
@@ -67,20 +70,25 @@ const cmd_and_codes massive_structur[NUM_COMMAND] = {
     {"JNE", JNE_CODE, 3},
     {"JMP", JMP_CODE, 3},
     {"CALL", CALL_CODE, 4},
-    {"RET", RET_CODE, 3}
+    {"RET", RET_CODE, 3},
+    {"POPM", POPM_CODE, 4},
+    {"DRAW", DRAW_CODE, 4},
+    {"SLEEP", SLEEP_CODE, 5},
 };
 
 StackErr_t Create_Bytecode(void);
 
-StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, FILE* fpp);
+StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int num_prohod, FILE* fpp);
 
 int Find_command_code(char* command, int* j);
 
-StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j);
-
 StackErr_t Work_With_PushValue(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int* i, int* j);
 
+StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int code, int* i, int* j);
+
 StackErr_t Work_With_Jump(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int* i, int* j);
+
+StackErr_t Work_Oper_Memory(unsigned char* massive_bytecode, char* massive_command, int* num_elements, int code, int* i, int* j);
 
 bool Skip_Spaces(char* massive_command, int* j);
 

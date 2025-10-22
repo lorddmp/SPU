@@ -8,7 +8,7 @@ int main()
     str_processor processor = {
         processor.stk = {},
         processor.call_adr = {},
-        processor.oper_memory = (data_t*)calloc(10000, sizeof(data_t)),
+        processor.oper_memory = (data_t*)calloc(OPER_MEMORY_SIZE, sizeof(data_t)),
         processor.registr_mas[REG_NUM] = {},
         processor.ip = 0,
     };

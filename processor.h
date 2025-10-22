@@ -5,8 +5,10 @@
 #include "create_bytecode.h"
 
 #define MAX_SIZE_COMMAND 8
-#define SIZE_MASSIVE 1024
 #define REG_NUM 4
+#define OPER_MEMORY_SIZE 400
+#define DLINA_STROKI_OPER 20
+
 
 struct str_processor{
     stack_str stk;

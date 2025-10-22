@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define GEN_FUNC_DECLARATION(funcname)        \
 StackErr_t funcname(str_processor* processor);
@@ -26,6 +28,10 @@ GEN_FUNC_DECLARATION(JNE_CASE)
 GEN_FUNC_DECLARATION(JMP_CASE)
 GEN_FUNC_DECLARATION(CALL_CASE)
 GEN_FUNC_DECLARATION(RET_CASE)
+GEN_FUNC_DECLARATION(PUSHM_CASE)
+GEN_FUNC_DECLARATION(POPM_CASE)
+GEN_FUNC_DECLARATION(DRAW_CASE)
+GEN_FUNC_DECLARATION(SLEEP_CASE)
 
 #undef GEN_FUNC_DECLARATION
 
@@ -33,7 +39,7 @@ GEN_FUNC_DECLARATION(RET_CASE)
 //fibo
 //factorial
 
-StackErr_t Run_Commands(str_processor* processor, int size_mas);
+StackErr_t Run_Commands(str_processor* processor);
 
 bool Is_Zero(data_t a, data_t b);
 
@@ -41,12 +47,12 @@ struct functions
 {
     StackErr_t(*funcname)(str_processor* processor);
     const char* CMD;
+
     int CMD_CODE;
 };
 
 functions func_mas[NUM_COMMAND]
 {
-    {NULL, "HLT", HLT_CODE},
     {PUSH_CASE, "PUSH", PUSH_CODE},
     {POP_CASE, "POP", POP_CODE},
     {ADD_CASE, "ADD", ADD_CODE},
@@ -66,18 +72,20 @@ functions func_mas[NUM_COMMAND]
     {JMP_CASE, "JMP", JMP_CODE},
     {CALL_CASE, "CALL", CALL_CODE},
     {RET_CASE, "RET", RET_CODE},
+    {PUSHM_CASE, "PUSHM", PUSHM_CODE},
+    {POPM_CASE, "POPM", POPM_CODE},
+    {DRAW_CASE, "DRAW", DRAW_CODE},
+    {SLEEP_CASE, "SLEEP", SLEEP_CODE}, 
 };
 
 StackErr_t Run_Bytecode(str_processor* processor)
 {
-    processor->buffer_commands = (unsigned char*)calloc(SIZE_MASSIVE, sizeof(char));
-    int size_mas = 0;
+    // int x = 1;
+    // x |= 2;
+    // x &= 1;
 
-    if (processor->buffer_commands == NULL)
-    {
-        printf("Code error: %d. Calloc worked incorrectly\n" , ERROR_CALLOC);
-        return ERROR_CALLOC;
-    }
+    struct stat buf = {};
+
 
     FILE* fpp = fopen(NAME_BYTECODE_FILE, "r"); 
 
@@ -87,9 +95,19 @@ StackErr_t Run_Bytecode(str_processor* processor)
         return ERROR_OPEN_BYTECODE_FILE;
     }
 
-    size_mas = (int)fread(processor->buffer_commands, sizeof(char), SIZE_MASSIVE, fpp);
+    int descriptor = fileno(fpp);
+    fstat(descriptor, &buf);
+    processor->buffer_commands = (unsigned char*)calloc((size_t)buf.st_size, sizeof(unsigned char));
+
+    if (processor->buffer_commands == NULL)
+    {
+        printf("Code error: %d. Calloc worked incorrectly\n" , ERROR_CALLOC);
+        return ERROR_CALLOC;
+    }
     
-    Run_Commands(processor, size_mas);
+    fread(processor->buffer_commands, sizeof(char), (size_t)buf.st_size, fpp);
+    
+    Run_Commands(processor);
 
     free(processor->buffer_commands);
 
@@ -98,20 +116,21 @@ StackErr_t Run_Bytecode(str_processor* processor)
     return NO_ERRORS;
 }
 
-StackErr_t Run_Commands(str_processor* processor, int size_mas)
+StackErr_t Run_Commands(str_processor* processor)
 {
-    for (int i = 0; i < size_mas; i++, processor->ip++)
+    for (int i = 0;; processor->ip++, i++)
     {
         bool func_found = 0;
-        printf("\n\n-----\n\nCODE is: %d\n", processor->buffer_commands[processor->ip]);
+        // printf("\n\n-----\n\nCODE is: %d\n", processor->buffer_commands[processor->ip]);
 
-        for (int j = 1; j < NUM_COMMAND; j++)
+        for (int j = 0; j < NUM_COMMAND - 1; j++)
         {
             if (func_mas[j].CMD_CODE == processor->buffer_commands[processor->ip])
             {
                 func_found = true;
-                printf("%s", func_mas[j].CMD);
-                printf("_RUN\n");
+                // printf("%d) %s", i, func_mas[j].CMD);
+                // printf("_RUN\n");
+                // printf("instr pointer = %x\n", processor->ip);
                 func_mas[j].funcname(processor);
                 break;
             }
@@ -120,15 +139,17 @@ StackErr_t Run_Commands(str_processor* processor, int size_mas)
         if (func_found)
             continue;
 
-        else if (processor->buffer_commands[processor->ip] == 0)
+        if (processor->buffer_commands[processor->ip] == HLT_CODE)
+        {
+            printf("HLT_RUN\n");
             return NO_ERRORS;
+        }
         else
         {
             StackDump(processor->stk);
             printf("Code error: %d. Invalid command\n", ILLEGAL_COMMAND);
             return ILLEGAL_COMMAND;
         }
-        
     }
 
     return NO_ERRORS;
@@ -136,8 +157,14 @@ StackErr_t Run_Commands(str_processor* processor, int size_mas)
 
 StackErr_t PUSH_CASE(str_processor* processor)
 {
+    
+    // printf("instr pointer before = %x\n", processor->ip);
+
     IF_ERROR(StackPush(&processor->stk, *(data_t*)(&processor->buffer_commands[processor->ip + 1])), processor->stk)
     processor->ip += (int)sizeof(data_t);
+
+    
+    // printf("instr pointer after = %x\n", processor->ip);
 
     return NO_ERRORS;
 }
@@ -161,7 +188,7 @@ StackErr_t funcname(str_processor* processor)                               \
     data_t value2 = StackPop(&processor->stk, &err);                        \
     IF_ERROR(err, processor->stk)                                           \
                                                                             \
-    IF_ERROR(StackPush(&processor->stk, value2 sign value1),processor->stk) \
+    IF_ERROR(StackPush(&processor->stk, value1 sign value2),processor->stk) \
                                                                             \
     return NO_ERRORS;                                                       \
 }
@@ -249,11 +276,11 @@ StackErr_t funcname(str_processor* processor)                                   
     return NO_ERRORS;                                                                   \
 }
 
-GEN_JUMPING(JA_CASE, >)
-GEN_JUMPING(JAE_CASE, >=)
-GEN_JUMPING(JB_CASE, <)
-GEN_JUMPING(JBE_CASE, <=)
-
+GEN_JUMPING(JA_CASE, >) 
+GEN_JUMPING(JAE_CASE, >=)  
+GEN_JUMPING(JB_CASE, <) 
+GEN_JUMPING(JBE_CASE, <=) 
+ 
 #undef GEN_JUMPING
 
 StackErr_t JE_CASE(str_processor* processor)
@@ -308,8 +335,61 @@ StackErr_t CALL_CASE(str_processor* processor)
 StackErr_t RET_CASE(str_processor* processor)
 {
     StackErr_t err = NO_ERRORS;
-    processor->ip = StackPop(&processor->call_adr, &err);
+    processor->ip = (int)StackPop(&processor->call_adr, &err);
     IF_ERROR(err, processor->call_adr)
+
+    return NO_ERRORS;
+}
+
+StackErr_t PUSHM_CASE(str_processor* processor)
+{
+    IF_ERROR(
+        StackPush(
+            &processor->stk,
+            processor->oper_memory[(int)processor->registr_mas[processor->buffer_commands[processor->ip + 1]]]
+        ),
+        processor->stk
+    )
+
+    processor->ip++;
+
+    return NO_ERRORS;
+}
+
+StackErr_t POPM_CASE(str_processor* processor)
+{
+    StackErr_t err = NO_ERRORS;
+    processor->oper_memory
+    [(int)processor->registr_mas
+    [processor->buffer_commands
+    [processor->ip + 1]]] = StackPop(&processor->stk, &err);
+
+    IF_ERROR(err, processor->stk)
+
+    processor->ip++;
+
+    return NO_ERRORS;
+}
+
+StackErr_t DRAW_CASE(str_processor* processor)
+{
+    for (int t = 0; t < OPER_MEMORY_SIZE; t++)
+    {
+        printf("%c ", (char)processor->oper_memory[t]);
+        if ((t + 1) % DLINA_STROKI_OPER == 0)
+            printf("\n");
+        
+    }
+
+    for (int i = 0; i < OPER_MEMORY_SIZE / DLINA_STROKI_OPER ; i++)
+        printf("\x1b[A");
+
+    return NO_ERRORS;
+}
+
+StackErr_t SLEEP_CASE(str_processor* processor)
+{
+    sleep(1);
 
     return NO_ERRORS;
 }
