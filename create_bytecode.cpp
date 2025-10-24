@@ -40,24 +40,26 @@ StackErr_t Create_Bytecode(void)
 
     char* massive_command = (char*)calloc((size_t)buf.st_size, sizeof(char));
     fread(massive_command, sizeof(char), (size_t)buf.st_size, fp);
+
     fclose(fp);
 
-    if (String_Processing(massive_bytecode, massive_command, massive_metok, &num_elements, num_prohod, fpp))
+    if (String_Processing(massive_bytecode, massive_command, massive_metok, &num_elements, num_prohod, buf, fpp))
         return NO_ERRORS;
 
     num_prohod = 2;
 
-    if (String_Processing(massive_bytecode, massive_command, massive_metok, &num_elements, num_prohod, fpp))
+    if (String_Processing(massive_bytecode, massive_command, massive_metok, &num_elements, num_prohod, buf, fpp))
         return NO_ERRORS;
 
     fwrite(massive_bytecode, sizeof(unsigned char), (size_t)num_elements, fpp);
 
+    free(massive_command);
     fclose(fpp);
 
     return NO_ERRORS;
 }
 
-StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int num_prohod, FILE* fpp)
+StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int num_prohod, struct stat buf,  FILE* fpp)
 {
     char command[MAX_LEN_COMMAND] = {0};
     int cmd = 0, n = 0, adr_metka = 0;
@@ -65,14 +67,14 @@ StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_comm
 
     // printf("-----%s-----", massive_command);
 
-    for (int i = 0, j = 0, t = 0; ((cmd = sscanf(massive_command + j, "%s", command)) != 0 && cmd != -1); i++, t++)
+    for (int i = 0, j = 0, t = 0; ((cmd = sscanf(massive_command + j, "%s", command)) != 0 && cmd != -1 && j < buf.st_size); i++, t++)
     {
         // printf("\n\n---\n\n---%s---\n", massive_command + j);
 
         
-        printf("%d) command:%s\n", t, command);
+        // printf("%d) command:%s\n", t, command);
         // printf("sscanf returned %d\n", cmd);
-        printf("i = %d, j = %d\n", i, j);
+        // printf("i = %d, j = %d\n", i, j);
 
         Skip_Spaces(massive_command, &j);
         *num_elements = i + 1;
@@ -192,7 +194,7 @@ StackErr_t Work_With_PushValue(unsigned char* massive_bytecode, char* massive_co
         return ERROR_PUSH_NUM; 
     }
 
-    printf("PUSH!!!!!!!!\n");
+    // printf("PUSH!!!!!!!!\n");
     *((data_t*)(massive_bytecode + *i + 1)) = num;
     *i += (int)sizeof(data_t);
     *num_elements = *i + 1;
@@ -219,7 +221,7 @@ StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_com
     } 
 
     unsigned char number_of_register = reg - 'A';
-    printf("REG = %c\n", reg);
+    // printf("REG = %c\n", reg);
 
     if (number_of_register > REG_NUM)
     {
@@ -229,13 +231,13 @@ StackErr_t Work_With_Register(unsigned char* massive_bytecode, char* massive_com
 
     if (code == PUSH_CODE)
     {
-        printf("PUSHR!!!!!!!!\n");
+        // printf("PUSHR!!!!!!!!\n");
         massive_bytecode[*i] = PUSHR_CODE;
     }
 
     else
     {
-        printf("POPR!!!!!!!!\n");
+        // printf("POPR!!!!!!!!\n");
         massive_bytecode[*i] = POPR_CODE;
     }
 
@@ -299,13 +301,13 @@ StackErr_t Work_Oper_Memory(unsigned char* massive_bytecode, char* massive_comma
 
     if (code == PUSH_CODE)
     {
-        printf("PUSHM!!!!!!!!\n");
+        // printf("PUSHM!!!!!!!!\n");
         massive_bytecode[*i] = PUSHM_CODE;
     }
 
     else
     {
-        printf("POPM!!!!!!!!\n");
+        // printf("POPM!!!!!!!!\n");
         massive_bytecode[*i] = POPM_CODE;
     }
 

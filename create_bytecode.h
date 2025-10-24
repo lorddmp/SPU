@@ -78,7 +78,7 @@ const cmd_and_codes massive_structur[NUM_COMMAND] = {
 
 StackErr_t Create_Bytecode(void);
 
-StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int num_prohod, FILE* fpp);
+StackErr_t String_Processing(unsigned char* massive_bytecode, char* massive_command, int* massive_metok, int* num_elements, int num_prohod,struct stat buf, FILE* fpp);
 
 int Find_command_code(char* command, int* j);
 

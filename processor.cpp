@@ -188,7 +188,7 @@ StackErr_t funcname(str_processor* processor)                               \
     data_t value2 = StackPop(&processor->stk, &err);                        \
     IF_ERROR(err, processor->stk)                                           \
                                                                             \
-    IF_ERROR(StackPush(&processor->stk, value1 sign value2),processor->stk) \
+    IF_ERROR(StackPush(&processor->stk, value2 sign value1),processor->stk) \
                                                                             \
     return NO_ERRORS;                                                       \
 }
@@ -381,15 +381,15 @@ StackErr_t DRAW_CASE(str_processor* processor)
         
     }
 
-    for (int i = 0; i < OPER_MEMORY_SIZE / DLINA_STROKI_OPER ; i++)
-        printf("\x1b[A");
+    // for (int i = 0; i < OPER_MEMORY_SIZE / DLINA_STROKI_OPER ; i++)
+    //     printf("\x1b[A");
 
     return NO_ERRORS;
 }
 
 StackErr_t SLEEP_CASE(str_processor* processor)
 {
-    sleep(1);
+    usleep(5e5);
 
     return NO_ERRORS;
 }
